@@ -1,11 +1,20 @@
 package com.example.composeevolution
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
@@ -17,15 +26,62 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.composeevolution.model.Movie
 import com.example.composeevolution.ui.theme.ComposeEvolutionTheme
+import com.example.composeevolution.view.MovieItem
+import com.example.composeevolution.viewModel.MovieViewModel
 import com.google.accompanist.pager.*
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+    val movieVielModel by viewModels<MovieViewModel>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MainScreen()
+            val scaffoldState = rememberScaffoldState()
+            val scope = rememberCoroutineScope()
+            Scaffold(
+                scaffoldState = scaffoldState,
+                topBar = {
+                    AppBar(
+                        onNavigationIconClick = {
+                            scope.launch {
+                                scaffoldState.drawerState.open()
+                            }
+                        }
+                    )
+                },
+
+                drawerContent = {
+                    DrawerHeader()
+                    DrawrContent(
+                        onItemClick ={
+                            when(it.title){
+                                "Message" -> startMessageActivity(this@MainActivity)
+                                "Setting" -> Toast.makeText(this@MainActivity, "Configurações", Toast.LENGTH_SHORT).show()
+                            }
+                        })
+                }
+            ) {
+
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colors.background
+                ) {
+                    MovieList(movieList = movieVielModel.movieListResponse, this)
+                    movieVielModel.getMovieList()
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun MovieList(movieList: List<Movie>, context: Context) {
+    LazyColumn(Modifier.padding(10.dp, 10.dp)) { //marginTop
+        itemsIndexed(items = movieList) { index, item ->
+            MovieItem(movie = item, context)
         }
     }
 }
@@ -138,5 +194,11 @@ fun AccountsScreen(){
             color = Color.Blue,
             fontSize = 20.sp
         )
+    }
+}
+
+fun startMessageActivity(context: Context){
+    Intent(context, MessageActivity::class.java).also{
+        context.startActivity(it)
     }
 }

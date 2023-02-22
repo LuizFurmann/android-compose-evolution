@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ComposeEvolution</string>
+    <string name="title_activity_message">MessageActivity</string>
 </resources>
